@@ -1,19 +1,19 @@
 import faker from "@faker-js/faker";
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
-import * as cardRepository from "../repositories/cardRepository.js";
+import cardRepository, { TransactionTypes } from "../repositories/cardRepository.js";
 import companyService from "../services/companyService.js";
-import * as employeeService from "../services/employeeService.js";
+import employeeService from "../services/employeeService.js";
 
 export async function create(
   apiKey: string,
   employeeId: number,
-  type: cardRepository.TransactionTypes
+  type: TransactionTypes
 ) {
   await companyService.validateApiKeyOrFail(apiKey);
 
   const employee = await employeeService.getById(employeeId);
-
+  
   const existingCard = await cardRepository.findByTypeAndEmployeeId(
     type,
     employeeId
@@ -21,8 +21,10 @@ export async function create(
   if (existingCard) {
     throw { type: "conflict" };
   }
+  //  console.log(existingCard, '<<<existingCard');
 
   const cardData = generateCardData(employee.fullName);
+  console.log(cardData, '<< generatedData');
 
   await cardRepository.insert({
     ...cardData,
@@ -31,6 +33,7 @@ export async function create(
     isBlocked: false,
     type,
   });
+  console.log('passou do INSERT?');
 }
 
 function generateCardData(employeeName: string) {
@@ -72,7 +75,7 @@ function formatCardholderName(fullName: string) {
 
 function getHashedSecurityCode() {
   const securityCode = faker.finance.creditCardCVV();
-  console.log(securityCode);
+  //  console.log(securityCode);
 
   return bcrypt.hashSync(securityCode, 8);
 }
