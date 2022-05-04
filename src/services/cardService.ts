@@ -2,7 +2,7 @@ import faker from "@faker-js/faker";
 import bcrypt from "bcrypt";
 import dayjs from "dayjs";
 import * as cardRepository from "../repositories/cardRepository.js";
-import * as companyService from "../services/companyService.js";
+import companyService from "../services/companyService.js";
 import * as employeeService from "../services/employeeService.js";
 
 export async function create(

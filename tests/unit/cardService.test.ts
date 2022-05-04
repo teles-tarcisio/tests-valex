@@ -1,7 +1,6 @@
 import { jest } from '@jest/globals';
 
-import * as companyService from '../../src/services/companyService.js';
-import * as employeeService from '../../src/services/employeeService.js';
+import companyService from '../../src/services/companyService.js';
 
 describe('testing createCard', () => {
   it("should succesfully create a new card", () => {
@@ -14,7 +13,6 @@ describe('testing createCard', () => {
 
     jest.spyOn(companyService,'validateApiKeyOrFail').mockResolvedValue();
 
-    
-    
+    console.log('after: spyOn');    
   });
 });
