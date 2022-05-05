@@ -5,7 +5,7 @@ import cardRepository, { TransactionTypes } from "../repositories/cardRepository
 import companyService from "../services/companyService.js";
 import employeeService from "../services/employeeService.js";
 
-export async function create(
+async function create(
   apiKey: string,
   employeeId: number,
   type: TransactionTypes
@@ -21,10 +21,16 @@ export async function create(
   if (existingCard) {
     throw { type: "conflict" };
   }
-  //  console.log(existingCard, '<<<existingCard');
-
   const cardData = generateCardData(employee.fullName);
-  console.log(cardData, '<< generatedData');
+  const candidateCard = {
+    ...cardData,
+    employeeId,
+    isVirtual: false,
+    isBlocked: false,
+    type,
+  };
+
+  //console.log(candidateCard, '<< candidateCard');
 
   await cardRepository.insert({
     ...cardData,
@@ -33,7 +39,6 @@ export async function create(
     isBlocked: false,
     type,
   });
-  console.log('passou do INSERT?');
 }
 
 function generateCardData(employeeName: string) {
@@ -80,7 +85,7 @@ function getHashedSecurityCode() {
   return bcrypt.hashSync(securityCode, 8);
 }
 
-export async function activate(id: number, cvc: string, password: string) {
+async function activate(id: number, cvc: string, password: string) {
   const card = await getById(id);
 
   validateExpirationDateOrFail(card.expirationDate);
@@ -100,14 +105,14 @@ export async function activate(id: number, cvc: string, password: string) {
   await cardRepository.update(id, { password: hashedPassword });
 }
 
-export function validateExpirationDateOrFail(expirationDate: string) {
+function validateExpirationDateOrFail(expirationDate: string) {
   const today = dayjs().format("MM/YY");
   if (dayjs(today).isAfter(dayjs(expirationDate))) {
     throw { type: "bad_request" };
   }
 }
 
-export async function getById(id: number) {
+async function getById(id: number) {
   const card = await cardRepository.findById(id);
   if (!card) {
     throw { type: "not_found" };
@@ -115,16 +120,31 @@ export async function getById(id: number) {
   return card;
 }
 
-export function validateCVCOrFail(cvc: string, cardCVC: string) {
+function validateCVCOrFail(cvc: string, cardCVC: string) {
   const isCVCValid = bcrypt.compareSync(cvc, cardCVC);
   if (!isCVCValid) {
     throw { type: "unauthorized" };
   }
 }
 
-export function validatePasswordOrFail(password: string, cardPassword: string) {
+function validatePasswordOrFail(password: string, cardPassword: string) {
   const isPasswordValid = bcrypt.compareSync(password, cardPassword);
   if (!isPasswordValid) {
     throw { type: "unauthorized" };
   }
 }
+
+
+export default {
+  create,
+  generateCardData,
+  getMiddleNameInitial,
+  filterTwoLetterMiddleName,
+  formatCardholderName,
+  getHashedSecurityCode,
+  activate,
+  validateExpirationDateOrFail,
+  getById,
+  validateCVCOrFail,
+  validatePasswordOrFail,
+};
